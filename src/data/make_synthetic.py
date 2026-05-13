@@ -18,6 +18,9 @@ from dataclasses import dataclass
 import numpy as np
 import pandas as pd
 
+from src.sim.types import AttackType
+from src.sim.event_generator import generate_event
+
 
 @dataclass(frozen=True)
 class SyntheticConfig:
@@ -79,4 +82,48 @@ def make_synthetic_network_data(config: SyntheticConfig = SyntheticConfig()) -> 
     # Shuffle rows so attacks are not all at the bottom.
     df = df.sample(frac=1.0, random_state=config.random_state).reset_index(drop=True)
 
+    return df
+
+
+@dataclass(frozen=True)
+class SyntheticMetaverseConfig:
+    """Config for generating metaverse-style synthetic telemetry."""
+
+    n_rows: int = 8000
+    ddos_ratio: float = 0.12
+    phishing_ratio: float = 0.08
+    random_state: int = 42
+
+
+def make_synthetic_metaverse_data(
+    config: SyntheticMetaverseConfig = SyntheticMetaverseConfig(),
+) -> pd.DataFrame:
+    """Generate a metaverse telemetry dataset with DDoS + phishing samples.
+
+    Output columns include both:
+    - original v1 network-like columns
+    - v2 metaverse context columns (event_type, contains_url, req_rate, ...)
+    """
+
+    rng = np.random.default_rng(config.random_state)
+
+    n_ddos = int(config.n_rows * config.ddos_ratio)
+    n_phish = int(config.n_rows * config.phishing_ratio)
+    n_normal = config.n_rows - n_ddos - n_phish
+
+    events: list[dict] = []
+
+    for _ in range(n_normal):
+        events.append(generate_event(rng=rng, attack_type=AttackType.none, intensity=1.0))
+
+    for _ in range(n_ddos):
+        # Slight intensity variation for realism.
+        intensity = float(rng.uniform(0.8, 2.2))
+        events.append(generate_event(rng=rng, attack_type=AttackType.ddos, intensity=intensity))
+
+    for _ in range(n_phish):
+        events.append(generate_event(rng=rng, attack_type=AttackType.phishing, intensity=1.0))
+
+    df = pd.DataFrame(events)
+    df = df.sample(frac=1.0, random_state=config.random_state).reset_index(drop=True)
     return df

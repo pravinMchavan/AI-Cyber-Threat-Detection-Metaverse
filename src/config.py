@@ -28,11 +28,23 @@ class ProjectPaths:
 
     artifacts_dir: Path = ROOT_DIR / "artifacts"
 
+    # TLS certificates for the local HTTPS simulator.
+    certs_dir: Path = artifacts_dir / "certs"
+
     # Where the trained model (pipeline) will be saved.
     model_path: Path = artifacts_dir / "model.joblib"
 
+    # Unsupervised anomaly model (IsolationForest pipeline).
+    unsupervised_model_path: Path = artifacts_dir / "model_unsupervised.joblib"
+
     # Where we save evaluation numbers (accuracy/F1 etc.).
     metrics_path: Path = artifacts_dir / "metrics.json"
+
+    # Extra evaluation output (confusion matrix, ROC-AUC, false positives, etc.).
+    evaluation_path: Path = artifacts_dir / "evaluation.json"
+
+    # Alert log (JSON Lines): one JSON object per alert.
+    alerts_log_path: Path = artifacts_dir / "alerts.jsonl"
 
     # Where we store information about expected input columns.
     schema_path: Path = artifacts_dir / "schema.json"

@@ -35,6 +35,7 @@ if str(PROJECT_ROOT) not in sys.path:
 import argparse
 
 from src.models.train import load_training_data, train_model
+from src.models.anomaly import train_unsupervised
 
 
 def main() -> None:
@@ -51,9 +52,17 @@ def main() -> None:
     df = load_training_data(args.csv)
     metrics = train_model(df)
 
+    unsup = train_unsupervised(df)
+
     print("Training complete.")
     print(f"Accuracy: {metrics['accuracy']:.4f}")
     print(f"F1-score:  {metrics['f1']:.4f}")
+    if metrics.get("roc_auc") is not None:
+        print(f"ROC-AUC:  {metrics['roc_auc']:.4f}")
+    print(
+        "Unsupervised model saved (IsolationForest). "
+        f"Threshold={unsup['threshold']:.4f}, contamination={unsup['contamination']:.3f}"
+    )
     print("Saved model + metrics in artifacts/")
 
 
